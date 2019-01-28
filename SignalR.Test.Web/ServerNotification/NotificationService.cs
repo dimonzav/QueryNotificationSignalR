@@ -1,4 +1,6 @@
 ﻿using SignalR.Test.Web.Models;
+using SignalR.Test.Web.NotificationHubs;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -7,6 +9,19 @@ namespace SignalR.Test.Web.ServerNotification
 {
     public class NotificationService
     {
+        private DateTime lastTaskCreationDate = DateTime.Now;
+        
+        List<Task> Tasks { get; set; }
+
+        protected NotificationHub NotificationHub { get; }
+
+        public NotificationService(NotificationHub notificationHub)
+        {
+            this.NotificationHub = notificationHub;
+
+            this.Tasks = new List<Task>();
+        }
+
         private bool IsWork { get;  set; }
 
         private delegate void RateChangeNotification(DataTable table);
@@ -23,29 +38,35 @@ namespace SignalR.Test.Web.ServerNotification
 
             SqlCommand command = new SqlCommand
             {
-                CommandText = "SELECT TaskId, Name FROM dbo.Tasks;",
+                CommandText = "SELECT TaskId, Name, CreationDate FROM dbo.Tasks WHERE CreationDate > @creation_date;",
                 Connection = connection,
                 CommandType = CommandType.Text
             };
+
+            command.Parameters.AddWithValue("@creation_date", lastTaskCreationDate);
 
             this.dependency = new SqlDependency(command, "Service=ChangeNotificationService", 60);
             dependency.OnChange += new OnChangeEventHandler(OnItemChange);
 
             using (SqlDataReader dr = command.ExecuteReader())
             {
-                List<Task> tasks = new List<Task>();
+                this.Tasks = new List<Task>();
 
                 while (dr.Read())
                 {
-                    tasks.Add(new Task { TaskId = int.Parse(dr["TaskId"].ToString()), Name = dr["Name"].ToString() });
+                    this.Tasks.Add(new Task { TaskId = int.Parse(dr["TaskId"].ToString()), Name = dr["Name"].ToString() });
+
+                    this.lastTaskCreationDate = DateTime.Parse(dr["CreationDate"].ToString());
                 }
             }
-
-
         }
         private void OnItemChange(object s, SqlNotificationEventArgs e)
         {
-            IsWork = true;
+            this.StartNotification();
+
+            //this.NotificationHub.SendNotification(this.Tasks[0]);
+
+            System.Threading.Tasks.Task.Run(() => this.NotificationHub.SendNotification(this.Tasks[0]));
         }
         public void StopNotification()
         {

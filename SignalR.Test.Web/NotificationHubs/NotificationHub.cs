@@ -5,9 +5,21 @@
 
     public class NotificationHub : Hub
     {
-        public async Task SendNotification(string user, string message)
+        private readonly IHubContext<NotificationHub> _hubContext;
+
+        public NotificationHub()
         {
-            await Clients.All.SendAsync("ReceiveNotification", user, message);
+
+        }
+
+        public NotificationHub(IHubContext<NotificationHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
+        public async Task SendNotification(Models.Task task)
+        {
+            await Clients.All.SendAsync("ReceiveTask", $"Task {task.Name} was created.");
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalR.Test.Web.DataAccess;
 using SignalR.Test.Web.NotificationHubs;
+using SignalR.Test.Web.ServerNotification;
 
 namespace SignalR.Test.Web
 {
@@ -33,9 +34,9 @@ namespace SignalR.Test.Web
 
             services.AddSignalR();
 
-            string con = this.Configuration["Data:ConnectionString"];
+            services.AddTransient<IGlobalRepository, GlobalRepository>(s => new GlobalRepository(this.Configuration["Data:ConnectionStringLocal"]));
 
-            services.AddTransient<IGlobalRepository, GlobalRepository>(s => new GlobalRepository(this.Configuration["Data:ConnectionString"]));
+            services.AddTransient(s => new NotificationService(new NotificationHub()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -2,17 +2,16 @@
 
 var connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").build();
 
-connection.on("ReceiveNotification", function (user, message) {
+connection.on("ReceiveNotification", function (message) {
     var msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    var encodedMsg = user + " says " + msg;
     var li = document.createElement("li");
-    li.textContent = encodedMsg;
+    li.textContent = msg;
     document.getElementById("messagesList").appendChild(li);
 });
 
-connection.on("ReceiveTask", function (task) {
+connection.on("ReceiveTask", function (taskName) {
     var li = document.createElement("li");
-    li.textContent = task.name;
+    li.textContent = taskName;
     document.getElementById("taksList").appendChild(li);
 });
 

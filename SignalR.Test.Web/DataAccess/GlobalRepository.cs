@@ -18,11 +18,12 @@ namespace SignalR.Test.Web.DataAccess
             {
                 using (SqlConnection connection = new SqlConnection(this.ConnectionString))
                 {
-                    string query = "INSERT INTO dbo.Tasks (Name) VALUES (@name)";
+                    string query = "INSERT INTO dbo.Tasks (Name, CreationDate) VALUES (@name, @creation_date)";
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@name", taskName);
+                        command.Parameters.AddWithValue("@creation_date", DateTime.Now);
 
                         connection.Open();
 
@@ -47,12 +48,13 @@ namespace SignalR.Test.Web.DataAccess
             {
                 using (SqlConnection connection = new SqlConnection(this.ConnectionString))
                 {
-                    string query = "INSERT INTO dbo.Messages (UserName, MessageText) VALUES (@user_name, @message_text)";
+                    string query = "INSERT INTO dbo.Messages (UserName, MessageText, CreationDate) VALUES (@user_name, @message_text, @creation_date)";
 
                     using (SqlCommand command = new SqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@user_name", userName);
                         command.Parameters.AddWithValue("@message_text", messageText);
+                        command.Parameters.AddWithValue("@creation_date", DateTime.Now);
 
                         connection.Open();
 

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using SignalR.Test.Web.NotificationHubs;
 using SignalR.Test.Web.DataAccess;
+using SignalR.Test.Web.NotificationHubs;
 using SignalR.Test.Web.ServerNotification;
 
 namespace SignalR.Test.Web.Controllers
@@ -13,27 +13,31 @@ namespace SignalR.Test.Web.Controllers
     {
         protected IGlobalRepository Repository { get; }
 
-        private readonly IHubContext<NotificationHub> _hubContext;
+        protected NotificationService NotificationService { get; }
 
-        public NotificationController(IHubContext<NotificationHub> hubContext, IGlobalRepository globalRepository)
+        public NotificationController(IGlobalRepository globalRepository, NotificationService notificationService)
         {
-            NotificationService notificationService = new NotificationService();
-            notificationService.StartNotification();
-
             this.Repository = globalRepository;
 
-            _hubContext = hubContext;
+            this.NotificationService = notificationService;        
+        }
+
+        // GET: api/StartNotificationService
+        [HttpGet]
+        public IActionResult StartNotificationService()
+        {
+            this.NotificationService.StartNotification();
+
+            return this.Ok();
         }
 
         // POST: api/Notification
         [HttpPost]
-        public IEnumerable<string> AddTask(string taskName)
+        public IActionResult AddTask(string taskName)
         {
             this.Repository.AddTask(taskName);
 
-            //await _hubContext.Clients.All.SendAsync("ReceiveTask", task);
-
-            return new string[] { "value1", "value2" };
+            return Ok();
         }
 
         // POST: api/Notification
