@@ -36,7 +36,9 @@ namespace SignalR.Test.Web
 
             services.AddTransient<IGlobalRepository, GlobalRepository>(s => new GlobalRepository(this.Configuration["Data:ConnectionStringLocal"]));
 
-            services.AddTransient(s => new NotificationService(new NotificationHub()));
+            services.AddSingleton<NotificationHub>();
+
+            services.AddSingleton<NotificationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
