@@ -9,14 +9,18 @@ namespace SignalR.Test.Web.ServerNotification
 {
     public class NotificationService
     {
+        private readonly string ConnectionString;
+
         private DateTime lastTaskCreationDate = DateTime.Now;
         
         List<Task> Tasks { get; set; }
 
         protected NotificationHub NotificationHub { get; }
 
-        public NotificationService(NotificationHub notificationHub)
+        public NotificationService(NotificationHub notificationHub, string connectionString)
         {
+            this.ConnectionString = connectionString;
+
             this.NotificationHub = notificationHub;
 
             this.Tasks = new List<Task>();
@@ -24,11 +28,7 @@ namespace SignalR.Test.Web.ServerNotification
 
         private bool IsWork { get;  set; }
 
-        private delegate void RateChangeNotification(DataTable table);
-
         private SqlDependency dependency;
-
-        readonly string ConnectionString = "Data Source=(LocalDb)\\ProjectsV13;Initial Catalog=test_elma;Integrated Security=True;Connection Timeout=90;";
 
         public void StartNotification()
         {
@@ -38,12 +38,18 @@ namespace SignalR.Test.Web.ServerNotification
 
             SqlCommand command = new SqlCommand
             {
-                CommandText = "SELECT TaskId, Name, CreationDate FROM dbo.Tasks WHERE CreationDate > @creation_date;",
+                CommandText = "SELECT TaskId, Name, LastDate " +
+                "FROM dbo.Tasks tasks " +
+                "INNER JOIN(SELECT CreationDate, MAX(CreationDate) as LastDate " +
+                "FROM dbo.Tasks " +
+                "WHERE CreationDate > @lastCreationDate" +
+                "GROUP BY CreationDate) as tasks2 " +
+                "ON tasks.CreationDate = tasks2.LastDate; ",
                 Connection = connection,
                 CommandType = CommandType.Text
             };
 
-            command.Parameters.AddWithValue("@creation_date", lastTaskCreationDate);
+            command.Parameters.AddWithValue("@lastCreationDate", lastTaskCreationDate);
 
             this.dependency = new SqlDependency(command, "Service=ChangeNotificationService", 60);
             dependency.OnChange += new OnChangeEventHandler(OnItemChange);
@@ -56,7 +62,7 @@ namespace SignalR.Test.Web.ServerNotification
                 {
                     this.Tasks.Add(new Task { TaskId = int.Parse(dr["TaskId"].ToString()), Name = dr["Name"].ToString() });
 
-                    this.lastTaskCreationDate = DateTime.Parse(dr["CreationDate"].ToString());
+                    this.lastTaskCreationDate = DateTime.Parse(dr["LastDate"].ToString());
                 }
             }
         }
@@ -64,13 +70,11 @@ namespace SignalR.Test.Web.ServerNotification
         {
             this.StartNotification();
 
-            //this.NotificationHub.SendNotification(this.Tasks[0]);
-
             System.Threading.Tasks.Task.Run(() => this.NotificationHub.SendNotification(this.Tasks[0]));
         }
         public void StopNotification()
         {
-            SqlDependency.Stop(this.ConnectionString, "QueueName");
+            SqlDependency.Stop(this.ConnectionString, "ChangeTaskAndMessage");
         }
     }
 }

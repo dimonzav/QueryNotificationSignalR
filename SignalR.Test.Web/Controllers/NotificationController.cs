@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using SignalR.Test.Web.DataAccess;
-using SignalR.Test.Web.NotificationHubs;
 using SignalR.Test.Web.ServerNotification;
 
 namespace SignalR.Test.Web.Controllers
@@ -43,13 +41,11 @@ namespace SignalR.Test.Web.Controllers
         // POST: api/Notification
         [HttpPost]
         [Route("SendMessage")]
-        public IEnumerable<string> SendMessage(string userName, string messageText)
+        public IActionResult SendMessage(string userName, string messageText)
         {
             this.Repository.AddMessage(userName, messageText);
 
-            //await _hubContext.Clients.All.SendAsync("ReceiveTask", task);
-
-            return new string[] { "value1", "value2" };
+            return Ok();
         }
     }
 }

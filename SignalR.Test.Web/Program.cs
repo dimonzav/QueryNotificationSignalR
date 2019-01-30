@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using SignalR.Test.Web.ServerNotification;
 
 namespace SignalR.Test.Web
 {
@@ -8,12 +7,7 @@ namespace SignalR.Test.Web
     {
         public static void Main(string[] args)
         {
-            IWebHost host = CreateWebHostBuilder(args).Build();
-
-            //NotificationService notificationService = new NotificationService();
-            //notificationService.StartNotification();
-
-            host.Run();
+            CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
