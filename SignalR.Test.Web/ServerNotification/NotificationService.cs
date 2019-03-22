@@ -17,9 +17,9 @@ namespace SignalR.Test.Web.ServerNotification
 
         protected NotificationHub NotificationHub { get; }
 
-        public NotificationService(NotificationHub notificationHub, string connectionString)
+        public NotificationService(NotificationHub notificationHub)
         {
-            this.ConnectionString = connectionString;
+            this.ConnectionString = "Data Source=(LocalDb)\\ProjectsV13;Initial Catalog=test_elma;Integrated Security=True;Connection Timeout=90;";
 
             this.NotificationHub = notificationHub;
 

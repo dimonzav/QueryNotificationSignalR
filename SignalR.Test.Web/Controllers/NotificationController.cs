@@ -1,5 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using SignalR.Test.Web.DataAccess;
 using SignalR.Test.Web.ServerNotification;
 
@@ -46,6 +52,51 @@ namespace SignalR.Test.Web.Controllers
             this.Repository.AddMessage(userName, messageText);
 
             return Ok();
+        }
+
+
+
+
+        [HttpGet]
+        [Route("GetFile")]
+        public async System.Threading.Tasks.Task<IActionResult> GetFileAsync()
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "http://185.59.101.152:8080/PublicAPI/REST/EleWise.ELMA.Messages/MessageFeed/Posts/Feed?limit=5");
+
+            request.Headers.Accept.Clear();
+            request.Headers.Add("AuthToken", "6ad2160c-5107-401d-b033-6d1b0ecff9fe");
+
+            HttpClient client = new HttpClient();
+
+            using (HttpResponseMessage response = await client.SendAsync(request))
+            {
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    dynamic json = JObject.Parse(result);
+
+                    string actionObjectId = json.Data[0].ChangeDate;
+
+                    dynamic resultJson = new List<dynamic>();
+
+                    foreach (var item in json.Data)
+                    {
+                        if (item.ChangeDate >= DateTime.Now.AddDays(-1))
+                        {
+                            resultJson.Add(item);
+                        }
+                    }
+
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"There was some error occurred: {ex.Message}");
+                }
+            }
         }
     }
 }

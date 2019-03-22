@@ -39,6 +39,11 @@ namespace SignalR.Test.Web
             services.AddSingleton<NotificationHub>();
 
             services.AddSingleton<NotificationService>();
+
+            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            {
+                builder.WithOrigins("http://185.59.101.152:8080");
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +58,7 @@ namespace SignalR.Test.Web
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseCors("MyPolicy");
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseSignalR(routes =>
